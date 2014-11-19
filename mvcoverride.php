@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 
 jimport('joomla.plugin.plugin');
 jimport('joomla.filesystem.folder');
+jimport('joomla.filesystem.file');
 
 /**
  * PlgSystemMVCOverride class.
