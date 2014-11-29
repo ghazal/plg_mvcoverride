@@ -18,6 +18,6 @@ http://extensions.joomla.org/extensions/style-a-design/templating/15611
 >/templates/yourtemplate/code/com_search/views/search/view.html.php
 
 ###Issue
-There is a known incompatibility with nonumber.nl Advanced Module Manager.
+No more issue.
 
-Feel free to help us in this matter (post in Issues).
+Alex Chartier found a working solution.
