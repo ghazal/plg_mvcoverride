@@ -52,6 +52,7 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 
 		// Get module path
 		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
+		$path = JPATH_BASE . '/modules/' . $module->module . '/' . $module->module . '.php';
 		self::addIncludePath(JPATH_BASE . '/modules');
 		
 		// Load the module
@@ -62,7 +63,7 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 
 			// 1.5 or Core then 1.6 3PD
 			$lang->load($module->module, JPATH_BASE, null, false, false) ||
-				//$lang->load($module->module, dirname($path), null, false, false) ||
+				$lang->load($module->module, dirname($path), null, false, false) ||
 				$lang->load($module->module, JPATH_BASE, $lang->getDefault(), false, false) ||
 				$lang->load($module->module, dirname($path), $lang->getDefault(), false, false);
 

@@ -13,10 +13,17 @@ jimport('joomla.filesystem.file');
  */
 class PlgSystemMVCOverride extends JPlugin
 {
+	
 	public function onAfterInitialise()
 	{
+		$jV = new JVersion();
+		if (version_compare($jV->getShortVersion(), "3", "lt"))
+			$loc = '/joomla/application/module/';
+		else
+			$loc = '/cms/module/';
+			
 		//override JModuleHelper library class
-		$moduleHelperContent = JFile::read(JPATH_LIBRARIES.'/cms/module/helper.php');
+		$moduleHelperContent = JFile::read(JPATH_LIBRARIES.$loc.'helper.php');
 		$moduleHelperContent = str_replace('JModuleHelper', 'JModuleHelperLibraryDefault', $moduleHelperContent);
 		$moduleHelperContent = str_replace('<?php','',$moduleHelperContent);
 		eval($moduleHelperContent);
@@ -60,8 +67,8 @@ class PlgSystemMVCOverride extends JPlugin
 		//base extensions path
 		$includePath[] = JPATH_BASE.'/code';
 		
-		JModuleHelper::addIncludePath(JPATH_BASE.'/code/modules');
-		JModuleHelper::addIncludePath(JPATH_THEMES.'/'.$template.'/code/modules');
+		JModelLegacy::addIncludePath(JPATH_BASE.'/code/modules');
+		JModelLegacy::addIncludePath(JPATH_THEMES.'/'.$template.'/code/modules');
 		
 		
 		//constants to replace JPATH_COMPONENT, JPATH_COMPONENT_SITE and JPATH_COMPONENT_ADMINISTRATOR
