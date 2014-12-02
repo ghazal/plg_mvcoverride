@@ -14,10 +14,16 @@ Plugin Override - Joomla! Extensions Directory
 http://extensions.joomla.org/extensions/style-a-design/templating/15611
 
 ###Usage example 
-
+For a component :
 >/templates/yourtemplate/code/com_search/views/search/view.html.php
 
+For a module :
+>/templates/yourtemplate/code/module_name/helper.php 
+
+
 ###Issue
-No more issue.
+No more issue ATM.
 
 Alex Chartier found a working solution.
+
+If someone finds an issue, please tell us.
