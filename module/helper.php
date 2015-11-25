@@ -18,6 +18,7 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 	 * @since  11.1
 	 */
 	protected static $includePaths = array();
+	protected static $modulePaths = array();
 
 	/**
 	 * Render the module.
@@ -56,7 +57,13 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 		// Get module path
 		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
 		$path = JPATH_BASE . '/modules/' . $module->module . '/' . $module->module . '.php';
-		self::addIncludePath(JPATH_BASE . '/modules');
+    self::addIncludePath(JPATH_BASE . '/modules');
+
+    // Override module
+		$modulePaths = array(
+      JPATH_THEMES . '/' . $template . '/code',
+      JPATH_BASE . '/modules'
+    );
 
 		// Load the module
 		// $module->user is a check for 1.0 custom modules and is deprecated refactoring
@@ -72,7 +79,7 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 
 			$content = '';
 			ob_start();
-			include JPath::find(self::addIncludePath(),$module->module . '/' . $module->module . '.php');
+			include JPath::find($modulePaths, $module->module . '/' . $module->module . '.php');
 			$module->content = ob_get_contents() . $content;
 			ob_end_clean();
 		}
