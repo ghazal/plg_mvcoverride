@@ -50,11 +50,14 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 		$params = new JRegistry;
 		$params->loadString($module->params);
 
+		// Get the template
+		$template = $app->getTemplate();
+
 		// Get module path
 		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
 		$path = JPATH_BASE . '/modules/' . $module->module . '/' . $module->module . '.php';
 		self::addIncludePath(JPATH_BASE . '/modules');
-		
+
 		// Load the module
 		// $module->user is a check for 1.0 custom modules and is deprecated refactoring
 		if (empty($module->user))
@@ -81,7 +84,7 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 		}
 
 		include_once JPATH_THEMES . '/system/html/modules.php';
-		$chromePath = JPATH_THEMES . '/' . $app->getTemplate() . '/html/modules.php';
+		$chromePath = JPATH_THEMES . '/' . $template . '/html/modules.php';
 
 		if (!isset($chrome[$chromePath]))
 		{
@@ -91,6 +94,14 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 			}
 
 			$chrome[$chromePath] = true;
+		}
+
+		// Check if the current module has a style param to override template module style
+		$paramsChromeStyle = $params->get('style');
+
+		if ($paramsChromeStyle)
+		{
+			$attribs['style'] = preg_replace('/^(system|' . $template . ')\-/i', '', $paramsChromeStyle);
 		}
 
 		// Make sure a style is set
@@ -196,7 +207,7 @@ abstract class JModuleHelper extends JModuleHelperLibraryDefault
 			{
 				jimport('joomla.filesystem.path');
 				array_unshift(self::$includePaths, JPath::clean($dir));
-				
+
 				//fix to override include path priority
 				self::$includePaths = array_reverse(self::$includePaths);
 			}
