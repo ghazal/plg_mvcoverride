@@ -15,7 +15,7 @@ jimport('joomla.filesystem.file');
 class PlgSystemMVCOverride extends JPlugin
 {
 
-    /**
+  /**
      * Detach observer object if nothing to override
      *
      * @param type $subject
@@ -24,32 +24,16 @@ class PlgSystemMVCOverride extends JPlugin
      */
     public function __construct(&$subject, $config = array())
     {
-        if (!$this->isOverrideNeeded()) {
+        parent::__construct($subject, $config);
+
+        $this->allowModulesOverrides();
+
+        if (!$this->isComponentOverrideNeeded()) {
             JEventDispatcher::getInstance()->detach($this);
 
             return;
         }
-
-        parent::__construct($subject, $config);
     }
-
-    public function onAfterInitialise()
-	{
-		$jV = new JVersion();
-		if (version_compare($jV->getShortVersion(), "3", "lt"))
-			$loc = '/joomla/application/module/';
-		else
-			$loc = '/cms/module/';
-
-		//override JModuleHelper library class
-		$moduleHelperContent = JFile::read(JPATH_LIBRARIES.$loc.'helper.php');
-		$moduleHelperContent = str_replace('JModuleHelper', 'JModuleHelperLibraryDefault', $moduleHelperContent);
-		$moduleHelperContent = str_replace('<?php','',$moduleHelperContent);
-		eval($moduleHelperContent);
-
-		jimport('joomla.application.module.helper');
-		JLoader::register('jmodulehelper', dirname(__FILE__).'/module/helper.php', true);
-	}
 
 	/**
 	 * onAfterRoute function.
@@ -61,10 +45,10 @@ class PlgSystemMVCOverride extends JPlugin
 	{
         $option = $this->getOption();
 
-        //get files that can be overrided
-        $componentOverrideFiles = $this->loadComponentFiles($option);
+		//get files that can be overrided
+		$componentOverrideFiles = $this->loadComponentFiles($option);
 
-        //template name
+		//template name
 		$template = JFactory::getApplication()->getTemplate();
 
 		//code paths
@@ -73,10 +57,6 @@ class PlgSystemMVCOverride extends JPlugin
 		$includePath[] = JPATH_THEMES.'/'.$template.'/code';
 		//base extensions path
 		$includePath[] = JPATH_BASE.'/code';
-
-		JModelLegacy::addIncludePath(JPATH_BASE.'/code/modules');
-		JModelLegacy::addIncludePath(JPATH_THEMES.'/'.$template.'/code/modules');
-
 
 		//constants to replace JPATH_COMPONENT, JPATH_COMPONENT_SITE and JPATH_COMPONENT_ADMINISTRATOR
 		define('JPATH_SOURCE_COMPONENT',JPATH_BASE.'/components/'.$option);
@@ -236,34 +216,12 @@ class PlgSystemMVCOverride extends JPlugin
         return false;
 	}
 
-    /**
-     * Check if component is overriden prior to looping through all its files
-     *
-     * @return boolean
-     */
-    private function isOverrideNeeded()
-    {
-        $app = JFactory::getApplication();
-
-        $option = $this->getOption();
-
-        if ($option && JFolder::exists(JPATH_THEMES . '/' . $app->getTemplate() . '/code/' . $option)) {
-            return true;
-        }
-
-        if ($app->isAdmin() && JFolder::exists(JPATH_ADMINISTRATOR . '/code/' . $option)) {
-            return true;
-        }
-
-        return false;
-    }
-
     private function getOption()
     {
         $app = JFactory::getApplication();
         $option = $app->input->get('option');
 
-        if (!empty($option)) {
+		if (!empty($option)) {
             return $option;
         }
 
@@ -290,5 +248,49 @@ class PlgSystemMVCOverride extends JPlugin
         }
 
         return null;
+    }
+
+    /**
+     * Check if component is overriden prior to looping through all its files
+     *
+     * @return boolean
+     */
+    private function isComponentOverrideNeeded()
+    {
+        $app = JFactory::getApplication();
+
+        $option = $this->getOption();
+
+        if ($option && JFolder::exists(JPATH_THEMES . '/' . $app->getTemplate() . '/code/' . $option)) {
+            return true;
+        }
+
+        if ($app->isAdmin() && JFolder::exists(JPATH_ADMINISTRATOR . '/code/' . $option)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function allowModulesOverrides()
+    {
+        $jV = new JVersion();
+        if (version_compare($jV->getShortVersion(), "3", "lt")) {
+            $loc = '/joomla/application/module/';
+        } else {
+            $loc = '/cms/module/';
+        }
+
+        //override JModuleHelper library class
+        $moduleHelperContent = JFile::read(JPATH_LIBRARIES . $loc . 'helper.php');
+        $moduleHelperContent = str_replace('JModuleHelper', 'JModuleHelperLibraryDefault', $moduleHelperContent);
+        $moduleHelperContent = str_replace('<?php', '', $moduleHelperContent);
+        eval($moduleHelperContent);
+
+        jimport('joomla.application.module.helper');
+        JLoader::register('jmodulehelper', dirname(__FILE__) . '/module/helper.php', true);
+
+        JModuleHelper::addIncludePath(JPATH_BASE . '/code/modules');
+        JModuleHelper::addIncludePath(JPATH_THEMES . '/' . JFactory::getApplication()->getTemplate() . '/code/modules');
     }
 }
