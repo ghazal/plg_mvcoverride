@@ -1,14 +1,3 @@
-Hi everyone,
-
-thank you for your interest for this plugin.
-
-Unfortunately, I am running out of time these days, so I won't update it.
-
-If anyone has a solution to make it better, please feel free to fork it.
-
-Maybe, I'll come back in a few months, but right now I have a big project that will take all my energies.
-
-
 plg_mvcoverride
 ===============
 
