@@ -7,25 +7,17 @@ Plugin used (and updated for j!3) in these joomla docs :
 
  [How to override the component mvc from the Joomla! core - Joomla! Documentation](http://docs.joomla.org/How_to_override_the_component_mvc_from_the_Joomla!_core)
 
-The joomla 2.5.x version is here :
-
-Plugin Override - Joomla! Extensions Directory
-
-http://extensions.joomla.org/extensions/style-a-design/templating/15611
 
 ###Usage example
 For a component :
->/templates/yourtemplate/code/com_search/views/search/view.html.php
+>/templates/your\_template/code/com\_search/views/search/view.html.php
+
+For component controllers, replace the line :
+ >require\_once JPATH\_COMPONENT . '/controller.php'; BY  
+ >require\_once JPATH\_SOURCE\_COMPONENT . '/controller.php'; OR  
+ >require\_once '/home/your\_site/[public\_html or www]/templates/your\_template/code/component\_name/controllers.php
 
 For a module :
->/templates/yourtemplate/code/module_name/helper.php
->/templates/yourtemplate/code/module_name/module_name.php OR
->/code/module_name/module_name.php
-
-
-###Issue
-No more issue ATM.
-
-Alex Chartier found a working solution.
-
-If someone finds an issue, please tell us.
+>/templates/your\_template/code/module\_name/helper.php  
+>/templates/your\_template/code/module\_name/module\_name.php OR  
+>/code/module\_name/module\_name.php

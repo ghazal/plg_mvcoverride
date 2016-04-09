@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension version="3.3" type="plugin" group="system" method="upgrade">
-	<name>System - MVC Override</name>
-	<author>Julio Pontes - modified by Alex Chartier and Ghazal</author>
-	<creationDate>December 2014</creationDate>
-	<copyright>Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.</copyright>
-	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
-	<authorUrl>http://twitter.com/juliopontes</authorUrl>
-	<version>3.3</version>
-	<description>Provides a component MVC override.</description>
-	<files>
-		<filename plugin="mvcoverride">mvcoverride.php</filename>
-		<folder>module</folder>
-	</files>
-	<config>
-		<fields name="params">
-			<fieldset name="basic">
-				<field name="extendDefault" type="list" default="0" label="Make Extendable" description="Extend core component class. Its better to use OOP to extend components. You will be able to extend your override classes extend a Component[Controller|Model|View][Name]Default">
-					<option value="0">No</option>
-					<option value="1">Yes</option>
-				</field>
-				<field name="changePrivate" type="list" default="0" label="Change Functions" description="Changes all private methods in the base class to protected methods which allows the subclass to extend the base class better. This is not recommended unless you really need it.">
-					<option value="0">No</option>
-					<option value="1">Yes</option>
-				</field>
-			</fieldset>
-		</fields>
-	</config>
+<extension version="3.4" type="plugin" group="system" method="upgrade">
+    <name>System - MVC Override</name>
+    <author>Julio Pontes - modified by Alex Chartier, Ghazal and Hugo Fittipaldi</author>
+    <creationDate>December 2014</creationDate>
+    <copyright>Copyright (C) 2005 - 2010 Open Source Matters. All rights reserved.</copyright>
+    <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+    <authorUrl>http://twitter.com/juliopontes</authorUrl>
+    <version>3.4</version>
+    <description>Provides a component MVC override.</description>
+    <files>
+        <filename plugin="mvcoverride">mvcoverride.php</filename>
+        <folder>module</folder>
+    </files>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="extendDefault" type="list" default="0" label="Make Extendable" description="Extend core component class. Its better to use OOP to extend components. You will be able to extend your override classes extend a Component[Controller|Model|View][Name]Default">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </field>
+                <field name="changePrivate" type="list" default="0" label="Change Functions" description="Changes all private methods in the base class to protected methods which allows the subclass to extend the base class better. This is not recommended unless you really need it.">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
 </extension>
