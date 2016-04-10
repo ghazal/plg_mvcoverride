@@ -14,8 +14,7 @@ For a component :
 
 For component controllers, replace the line :
  >require\_once JPATH\_COMPONENT . '/controller.php'; BY  
- >require\_once JPATH\_SOURCE\_COMPONENT . '/controller.php'; OR  
- >require\_once '/home/your\_site/[public\_html or www]/templates/your\_template/code/component\_name/controllers.php
+ >require\_once JPATH\_SOURCE\_COMPONENT . '/controller.php';
 
 For a module :
 >/templates/your\_template/code/module\_name/helper.php  
