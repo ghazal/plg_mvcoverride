@@ -49,7 +49,9 @@ class PlgSystemMVCOverride extends JPlugin
 			
 			$componentID = $menuDefault->componentid;
 			$db = JFactory::getDBO();
-			$db->setQuery('SELECT * FROM #__extensions WHERE id ='.$db->quote($componentID));
+			//$db->setQuery('SELECT * FROM #__extensions WHERE id ='.$db->quote($componentID));
+			//corrected by vdrover 
+			$db->setQuery('SELECT * FROM #__extensions WHERE extension_id ='.$db->quote($componentID));
 			$component = $db->loadObject();
 			$option = $component->element;
 		}
