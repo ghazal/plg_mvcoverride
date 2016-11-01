@@ -101,9 +101,12 @@ class PlgSystemMVCOverride extends JPlugin
 
                         preg_match($rx, $bufferFile, $classes);
 
-                        $parts = explode(' ', $classes[0]);
-
-                        $originalClass = $parts[1];
+                        $originalClass = '';
+                        if (!empty($classes))
+                        {
+                            $parts = explode(' ', $classes[0]);
+                            $originalClass = $parts[1];
+                        }
                         $replaceClass = $originalClass . 'Default';
 
                         if (count($definesSourceOverride[0]))
