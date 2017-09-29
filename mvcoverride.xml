@@ -26,4 +26,8 @@
             </fieldset>
         </fields>
     </config>
+
+    <updateservers>
+        <server type="extension" priority="1" name="Plg MVCOverride Update Site">https://raw.githubusercontent.com/hfittipaldi/plg_mvcoverride/master/manifest.xml</server>
+    </updateservers>
 </extension>
