@@ -36,6 +36,8 @@ class PlgSystemMVCOverride extends JPlugin
         {
             JLoader::registerAlias('JModuleHelperLibraryDefault', '\\Joomla\\CMS\\Helper\\ModuleHelper', '5.0');
         }
+
+        JLoader::register('JModuleHelper', __DIR__ . '/module/helper.php', true);
     }
 
     /**
