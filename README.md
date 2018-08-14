@@ -16,20 +16,22 @@ Joomla plugin to override Joomla MVC.
 
 Plugin used (and updated for j!3) in these joomla docs :
 
- [How to override the component mvc from the Joomla! core - Joomla! Documentation](http://docs.joomla.org/How_to_override_the_component_mvc_from_the_Joomla!_core) 
+ [How to override the component mvc from the Joomla! core - Joomla! Documentation](http://docs.joomla.org/How_to_override_the_component_mvc_from_the_Joomla!_core)
 
-The joomla 2.5.x version is here :
+The joomla 2.5.x version is now dropped.
 
-Plugin Override - Joomla! Extensions Directory
-
-http://extensions.joomla.org/extensions/style-a-design/templating/15611
-
-###Usage example 
+###Usage example
 For a component :
->/templates/yourtemplate/code/com_search/views/search/view.html.php
+>/templates/yourtemplate/code/mod_search/views/search/view.html.php
+
+If your override file use constants, please replace these code constants :
+JPATH_COMPONENT -> JPATH_SOURCE_COMPONENT,
+JPATH_COMPONENT_SITE -> JPATH_SOURCE_COMPONENT_SITE and
+JPATH_COMPONENT_ADMINISTRATOR -> JPATH_SOURCE_COMPONENT_ADMINISTRATOR
 
 For a module :
->/templates/yourtemplate/code/module_name/helper.php 
+>/templates/yourtemplate/code/module_name/module_name.php (required)
+>/templates/yourtemplate/code/module_name/helper.php (optional)
 
 
 ###Issue

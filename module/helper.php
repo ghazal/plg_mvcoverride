@@ -1,6 +1,17 @@
 <?php
-// no direct access
-defined('_JEXEC') or die;
+/**
+ * Joomla! Content Management System
+ *
+ * @copyright  Copyright (C) 2005 - 2018 Open Source Matters, Inc. All rights reserved.
+ * @license    GNU General Public License version 2 or later; see LICENSE.txt
+ */
+
+defined('JPATH_PLATFORM') or die;
+
+
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Language\LanguageHelper;
+use Joomla\Registry\Registry;
 
 /**
  * Module helper class
@@ -11,208 +22,163 @@ defined('_JEXEC') or die;
  */
 abstract class JModuleHelper extends JModuleHelperLibraryDefault
 {
-	/**
-	 * An array to hold included paths
-	 *
-	 * @var    array
-	 * @since  11.1
-	 */
-	protected static $includePaths = array();
+    /**
+     * Render the module.
+     *
+     * @param   object  $module   A module object.
+     * @param   array   $attribs  An array of attributes for the module (probably from the XML).
+     *
+     * @return  string  The HTML content of the module output.
+     *
+     * @since   11.1
+     */
+    public static function renderModule($module, $attribs = array())
+    {
+        static $chrome;
 
-	/**
-	 * Render the module.
-	 *
-	 * @param   object  $module   A module object.
-	 * @param   array   $attribs  An array of attributes for the module (probably from the XML).
-	 *
-	 * @return  string  The HTML content of the module output.
-	 *
-	 * @since   11.1
-	 */
-	public static function renderModule($module, $attribs = array())
-	{
-		static $chrome;
+        // Check that $module is a valid module object
+        if (!is_object($module) || !isset($module->module) || !isset($module->params))
+        {
+            if (JDEBUG)
+            {
+                \JLog::addLogger(array('text_file' => 'jmodulehelper.log.php'), \JLog::ALL, array('modulehelper'));
+                \JLog::add('ModuleHelper::renderModule($module) expects a module object', \JLog::DEBUG, 'modulehelper');
+        }
 
-		if (constant('JDEBUG'))
-		{
-			JProfiler::getInstance('Application')->mark('beforeRenderModule ' . $module->module . ' (' . $module->title . ')');
-		}
+            return;
+        }
 
-		$app = JFactory::getApplication();
+        if (JDEBUG)
+        {
+            \JProfiler::getInstance('Application')->mark('beforeRenderModule ' . $module->module . ' (' . $module->title . ')');
+        }
 
-		// Record the scope.
-		$scope = $app->scope;
+        $app = \JFactory::getApplication();
 
-		// Set scope to component name
-		$app->scope = $module->module;
+        // Record the scope.
+        $scope = $app->scope;
 
-		// Get module parameters
-		$params = new JRegistry;
-		$params->loadString($module->params);
+        // Set scope to component name
+        $app->scope = $module->module;
 
-		// Get the template
-		$template = $app->getTemplate();
+        // Get module parameters
+        $params = new JRegistry;
+        $params->loadString($module->params);
 
-		// Get module path
-		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
-		$path = JPATH_BASE . '/modules/' . $module->module . '/' . $module->module . '.php';
-		self::addIncludePath(JPATH_BASE . '/modules');
+        // Get the template
+        $template = $app->getTemplate();
 
-		// Load the module
-		// $module->user is a check for 1.0 custom modules and is deprecated refactoring
-		if (empty($module->user))
-		{
-			$lang = JFactory::getLanguage();
+        // Get module path
+        $module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
+        $path = JPATH_THEMES . '/' . $template . '/code/' . $module->module . '/' . $module->module . '.php';
 
-			// 1.5 or Core then 1.6 3PD
-			$lang->load($module->module, JPATH_BASE, null, false, false) ||
-				$lang->load($module->module, dirname($path), null, false, false) ||
-				$lang->load($module->module, JPATH_BASE, $lang->getDefault(), false, false) ||
-				$lang->load($module->module, dirname($path), $lang->getDefault(), false, false);
+        if (!file_exists($path))
+        {
+            $path = JPATH_BASE . '/code/' . $module->module . '/' . $module->module . '.php';
+            if (!file_exists($path))
+            {
+                $path = JPATH_BASE . '/modules/' . $module->module . '/' . $module->module . '.php';
+            }
+        }
 
-			$content = '';
-			ob_start();
-			include JPath::find(self::addIncludePath(),$module->module . '/' . $module->module . '.php');
-			$module->content = ob_get_contents() . $content;
-			ob_end_clean();
-		}
+        // Load the module
+        if (file_exists($path))
+        {
+            $lang = \JFactory::getLanguage();
 
-		// Load the module chrome functions
-		if (!$chrome)
-		{
-			$chrome = array();
-		}
+            $coreLanguageDirectory      = JPATH_BASE;
+            $extensionLanguageDirectory = dirname($path);
 
-		include_once JPATH_THEMES . '/system/html/modules.php';
-		$chromePath = JPATH_THEMES . '/' . $template . '/html/modules.php';
+            $langPaths = $lang->getPaths();
 
-		if (!isset($chrome[$chromePath]))
-		{
-			if (file_exists($chromePath))
-			{
-				include_once $chromePath;
-			}
+            // Only load the module's language file if it hasn't been already
+            if (!$langPaths || (!isset($langPaths[$coreLanguageDirectory]) && !isset($langPaths[$extensionLanguageDirectory])))
+            {
+            // 1.5 or Core then 1.6 3PD
+                $lang->load($module->module, $coreLanguageDirectory, null, false, true) ||
+                    $lang->load($module->module, $extensionLanguageDirectory, null, false, true);
+            }
 
-			$chrome[$chromePath] = true;
-		}
+            $content = '';
+            ob_start();
+            include $path;
+            $module->content = ob_get_contents() . $content;
+            ob_end_clean();
+        }
 
-		// Check if the current module has a style param to override template module style
-		$paramsChromeStyle = $params->get('style');
+        // Load the module chrome functions
+        if (!$chrome)
+        {
+            $chrome = array();
+        }
 
-		if ($paramsChromeStyle)
-		{
-			$attribs['style'] = preg_replace('/^(system|' . $template . ')\-/i', '', $paramsChromeStyle);
-		}
+        include_once JPATH_THEMES . '/system/html/modules.php';
+        $chromePath = JPATH_THEMES . '/' . $template . '/html/modules.php';
 
-		// Make sure a style is set
-		if (!isset($attribs['style']))
-		{
-			$attribs['style'] = 'none';
-		}
+        if (!isset($chrome[$chromePath]))
+        {
+            if (file_exists($chromePath))
+            {
+                include_once $chromePath;
+            }
 
-		// Dynamically add outline style
-		if ($app->input->getBool('tp') && JComponentHelper::getParams('com_templates')->get('template_positions_display'))
-		{
-			$attribs['style'] .= ' outline';
-		}
+            $chrome[$chromePath] = true;
+        }
 
-		foreach (explode(' ', $attribs['style']) as $style)
-		{
-			$chromeMethod = 'modChrome_' . $style;
+        // Check if the current module has a style param to override template module style
+        $paramsChromeStyle = $params->get('style');
 
-			// Apply chrome and render module
-			if (function_exists($chromeMethod))
-			{
-				$module->style = $attribs['style'];
+        if ($paramsChromeStyle)
+        {
+            $attribs['style'] = preg_replace('/^(system|' . $template . ')\-/i', '', $paramsChromeStyle);
+        }
 
-				ob_start();
-				$chromeMethod($module, $params, $attribs);
-				$module->content = ob_get_contents();
-				ob_end_clean();
-			}
-		}
+        // Make sure a style is set
+        if (!isset($attribs['style']))
+        {
+            $attribs['style'] = 'none';
+        }
 
-		// Revert the scope
-		$app->scope = $scope;
+        // Dynamically add outline style
+        if ($app->input->getBool('tp') && ComponentHelper::getParams('com_templates')->get('template_positions_display'))
+        {
+            $attribs['style'] .= ' outline';
+        }
 
-		if (constant('JDEBUG'))
-		{
-			JProfiler::getInstance('Application')->mark('afterRenderModule ' . $module->module . ' (' . $module->title . ')');
-		}
+        // If the $module is nulled it will return an empty content, otherwise it will render the module normally.
+        $app->triggerEvent('onRenderModule', array(&$module, &$attribs));
 
-		return $module->content;
-	}
+        if ($module === null || !isset($module->content))
+        {
+            return '';
+        }
 
-	/**
-	 * Get the path to a layout for a module
-	 *
-	 * @param   string  $module  The name of the module
-	 * @param   string  $layout  The name of the module layout. If alternative layout, in the form template:filename.
-	 *
-	 * @return  string  The path to the module layout
-	 *
-	 * @since   11.1
-	 */
-	public static function getLayoutPath($module, $layout = 'default')
-	{
-		$template = JFactory::getApplication()->getTemplate();
-		$defaultLayout = $layout;
+        foreach (explode(' ', $attribs['style']) as $style)
+        {
+            $chromeMethod = 'modChrome_' . $style;
 
-		if (strpos($layout, ':') !== false)
-		{
-			// Get the template and file name from the string
-			$temp = explode(':', $layout);
-			$template = ($temp[0] == '_') ? $template : $temp[0];
-			$layout = $temp[1];
-			$defaultLayout = ($temp[1]) ? $temp[1] : 'default';
-		}
+            // Apply chrome and render module
+            if (function_exists($chromeMethod))
+            {
+                $module->style = $attribs['style'];
 
-		// Build the template and base path for the layout
-		$templatePaths = array(
-			JPATH_THEMES . '/' . $template . '/html/' . $module,
-			JPATH_BASE . '/modules/' . $module . '/tmpl',
-		);
-		$dPath = JPATH_BASE . '/modules/' . $module . '/tmpl/default.php';
+                ob_start();
+                $chromeMethod($module, $params, $attribs);
+                $module->content = ob_get_contents();
+                ob_end_clean();
+            }
+        }
 
-		// If the template has a layout override use it
-		if ($tPath = JPath::find($templatePaths,$defaultLayout.'.php'))
-		{
-			return $tPath;
-		}
-		else
-		{
-			return $dPath;
-		}
-	}
+        // Revert the scope
+        $app->scope = $scope;
 
-	/**
-	 * Add a directory where JModuleHelper should search for module. You may
-	 * either pass a string or an array of directories.
-	 *
-	 * @param   string  $path  A path to search.
-	 *
-	 * @return  array  An array with directory elements
-	 *
-	 * @since   11.1
-	 */
-	public static function addIncludePath($path = '')
-	{
-		// Force path to array
-		settype($path, 'array');
+        $app->triggerEvent('onAfterRenderModule', array(&$module, &$attribs));
 
-		// Loop through the path directories
-		foreach ($path as $dir)
-		{
-			if (!empty($dir) && !in_array($dir, self::$includePaths))
-			{
-				jimport('joomla.filesystem.path');
-				array_unshift(self::$includePaths, JPath::clean($dir));
+        if (JDEBUG)
+        {
+            \JProfiler::getInstance('Application')->mark('afterRenderModule ' . $module->module . ' (' . $module->title . ')');
+        }
 
-				//fix to override include path priority
-				self::$includePaths = array_reverse(self::$includePaths);
-			}
-		}
-
-		return self::$includePaths;
-	}
+        return $module->content;
+    }
 }

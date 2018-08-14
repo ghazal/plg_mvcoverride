@@ -16,28 +16,22 @@ class PlgSystemMVCOverride extends JPlugin
 {
     public function onAfterInitialise()
     {
+        $file = 'ModuleHelper.php';
+
         $jV = new JVersion();
         if (version_compare($jV->getShortVersion(), "3.8", "lt"))
         {
-            if (version_compare($jV->getShortVersion(), "3", "lt"))
-                $loc = '/joomla/application/module/';
-            else
-                $loc = '/cms/module/';
-
             //override JModuleHelper library class
-            $moduleHelperContent = JFile::read(JPATH_LIBRARIES . $loc . 'helper.php');
+            $moduleHelperContent = JFile::read(JPATH_LIBRARIES . '/cms/module/helper.php');
             $moduleHelperContent = str_replace('JModuleHelper', 'JModuleHelperLibraryDefault', $moduleHelperContent);
             $moduleHelperContent = str_replace('<?php', '', $moduleHelperContent);
             eval($moduleHelperContent);
 
             jimport('joomla.application.module.helper');
-        }
-        else
-        {
-            JLoader::registerAlias('JModuleHelperLibraryDefault', '\\Joomla\\CMS\\Helper\\ModuleHelper', '5.0');
+            $file = 'helper.php';
         }
 
-        JLoader::register('JModuleHelper', __DIR__ . '/module/helper.php', true);
+        JLoader::register('JModuleHelper', __DIR__ . '/module/' . $file, true);
     }
 
     /**
@@ -48,17 +42,19 @@ class PlgSystemMVCOverride extends JPlugin
      */
     public function onAfterRoute()
     {
-        $option = JFactory::getApplication()->input->get('option');
+        $app = JFactory::getApplication();
+        $option = $app->input->get('option');
 
-        if( empty($option) && JFactory::getApplication()->isSite() ) {
-            $menuDefault = JFactory::getApplication()->getMenu()->getDefault();
+        if (empty($option) && $app->isSite())
+        {
+            $menuDefault = $app->getMenu()->getDefault();
             if ($menuDefault == 0) return;
 
             $componentID = $menuDefault->componentid;
             $db = JFactory::getDBO();
 
             //corrected by vdrover
-            $db->setQuery('SELECT * FROM #__extensions WHERE extension_id ='.$db->quote($componentID));
+            $db->setQuery('SELECT * FROM #__extensions WHERE extension_id =' . $db->quote($componentID));
             $component = $db->loadObject();
             $option = $component->element;
         }
@@ -66,36 +62,33 @@ class PlgSystemMVCOverride extends JPlugin
         //get files that can be overrided
         $componentOverrideFiles = $this->loadComponentFiles($option);
         //application name
-        $applicationName = JFactory::getApplication()->getName();
+        $applicationName = $app->getName();
         //template name
-        $template = JFactory::getApplication()->getTemplate();
+        $template = $app->getTemplate();
 
         //code paths
         $includePath = array();
         //template code path
-        $includePath[] = JPATH_THEMES.'/'.$template.'/code';
+        $includePath[] = JPATH_THEMES . '/' . $template . '/code';
         //base extensions path
-        $includePath[] = JPATH_BASE.'/code';
-
-        JModelLegacy::addIncludePath(JPATH_BASE.'/code/modules');
-        JModelLegacy::addIncludePath(JPATH_THEMES.'/'.$template.'/code/modules');
-
+        $includePath[] = JPATH_BASE . '/code';
 
         //constants to replace JPATH_COMPONENT, JPATH_COMPONENT_SITE and JPATH_COMPONENT_ADMINISTRATOR
-        define('JPATH_SOURCE_COMPONENT',JPATH_BASE.'/components/'.$option);
-        define('JPATH_SOURCE_COMPONENT_SITE',JPATH_SITE.'/components/'.$option);
-        define('JPATH_SOURCE_COMPONENT_ADMINISTRATOR',JPATH_ADMINISTRATOR.'/components/'.$option);
+        define('JPATH_SOURCE_COMPONENT', JPATH_BASE . '/components/' . $option);
+        define('JPATH_SOURCE_COMPONENT_SITE', JPATH_SITE . '/components/' . $option);
+        define('JPATH_SOURCE_COMPONENT_ADMINISTRATOR', JPATH_ADMINISTRATOR . '/components/' . $option);
 
         //loading override files
-        if( !empty($componentOverrideFiles) ){
-            foreach($componentOverrideFiles as $componentFile)
+        if (!empty($componentOverrideFiles))
+        {
+            foreach ($componentOverrideFiles as $componentFile)
             {
-                if($filePath = $this->findPath($includePath,$componentFile))
+                if ($filePath = $this->findPath($includePath, $componentFile))
                 {
                     //include the original code and replace class name add a Default on
-                    if ($this->params->get('extendDefault',0))
+                    if ($this->params->get('extendDefault', 0))
                     {
-                        $bufferFile = file_get_contents(JPATH_BASE.'/components/'.$componentFile);
+                        $bufferFile = file_get_contents(JPATH_BASE . '/components/' . $componentFile);
                         //detect if source file use some constants
                         preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $bufferFile, $definesSource);
 
@@ -108,36 +101,35 @@ class PlgSystemMVCOverride extends JPlugin
 
                         preg_match($rx, $bufferFile, $classes);
 
-                        $parts = explode(' ',$classes[0]);
-
+                        $parts = explode(' ', $classes[0]);
                         $originalClass = $parts[1];
-                        $replaceClass = $originalClass.'Default';
+                        $replaceClass = $originalClass . 'Default';
 
                         if (count($definesSourceOverride[0]))
                         {
 
                         //throw new Exception(JText::_('Ckjhkjhkjh'));
-                            throw new Exception(JText::_('Plugin MVC Override','Your override file use constants, please replace code constants<br />JPATH_COMPONENT -> JPATH_SOURCE_COMPONENT,<br />JPATH_COMPONENT_SITE -> JPATH_SOURCE_COMPONENT_SITE and<br />JPATH_COMPONENT_ADMINISTRATOR -> JPATH_SOURCE_COMPONENT_ADMINISTRATOR'));
+                            throw new Exception(JText::_('Plugin MVC Override', 'Your override file use constants, please replace code constants<br />JPATH_COMPONENT -> JPATH_SOURCE_COMPONENT,<br />JPATH_COMPONENT_SITE -> JPATH_SOURCE_COMPONENT_SITE and<br />JPATH_COMPONENT_ADMINISTRATOR -> JPATH_SOURCE_COMPONENT_ADMINISTRATOR'));
                         }
                         else
                         {
                             //replace original class name by default
-                            $bufferContent = str_replace($originalClass,$replaceClass,$bufferFile);
+                            $bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
 
                             //replace JPATH_COMPONENT constants if found, because we are loading before define these constants
                             if (count($definesSource[0]))
                             {
-                                $bufferContent = preg_replace(array('/JPATH_COMPONENT/','/JPATH_COMPONENT_SITE/','/JPATH_COMPONENT_ADMINISTRATOR/'),array('JPATH_SOURCE_COMPONENT','JPATH_SOURCE_COMPONENT_SITE','JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),$bufferContent);
+                                $bufferContent = preg_replace(array('/JPATH_COMPONENT/', '/JPATH_COMPONENT_SITE/', '/JPATH_COMPONENT_ADMINISTRATOR/'), array('JPATH_SOURCE_COMPONENT', 'JPATH_SOURCE_COMPONENT_SITE', 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR'), $bufferContent);
                             }
 
                             // Change private methods to protected methods
-                            if ($this->params->get('changePrivate',0))
+                            if ($this->params->get('changePrivate', 0))
                             {
                                 $bufferContent = preg_replace('/private *function/i', 'protected function', $bufferContent);
                             }
 
                             // Finally we can load the base class
-                            eval('?>'.$bufferContent.PHP_EOL.'?>');
+                            eval('?>' . $bufferContent . PHP_EOL . '?>');
 
                             require_once $filePath;
                         }
@@ -160,38 +152,38 @@ class PlgSystemMVCOverride extends JPlugin
      */
     private function loadComponentFiles($option)
     {
-        $JPATH_COMPONENT = JPATH_BASE.'/components/'.$option;
+        $JPATH_COMPONENT = JPATH_BASE . '/components/' . $option;
         $files = array();
 
         //check if default controller exists
-        if (JFile::exists($JPATH_COMPONENT.'/controller.php'))
+        if (JFile::exists($JPATH_COMPONENT . '/controller.php'))
         {
-            $files[] = $JPATH_COMPONENT.'/controller.php';
+            $files[] = $JPATH_COMPONENT . '/controller.php';
         }
 
         //check if controllers folder exists
-        if (JFolder::exists($JPATH_COMPONENT.'/controllers'))
+        if (JFolder::exists($JPATH_COMPONENT . '/controllers'))
         {
-            $controllers = JFolder::files($JPATH_COMPONENT.'/controllers', '.php', false, true);
+            $controllers = JFolder::files($JPATH_COMPONENT . '/controllers', '.php', false, true);
             $files = array_merge($files, $controllers);
         }
 
         //check if models folder exists
-        if (JFolder::exists($JPATH_COMPONENT.'/models'))
+        if (JFolder::exists($JPATH_COMPONENT . '/models'))
         {
-            $models = JFolder::files($JPATH_COMPONENT.'/models', '.php', false, true);
+            $models = JFolder::files($JPATH_COMPONENT . '/models', '.php', false, true);
             $files = array_merge($files, $models);
         }
 
         //check if views folder exists
-        if (JFolder::exists($JPATH_COMPONENT.'/views'))
+        if (JFolder::exists($JPATH_COMPONENT . '/views'))
         {
             //reading view folders
-            $views = JFolder::folders($JPATH_COMPONENT.'/views');
+            $views = JFolder::folders($JPATH_COMPONENT . '/views');
             foreach ($views as $view)
             {
                 //get view formats files
-                $viewsFiles = JFolder::files($JPATH_COMPONENT.'/views/'.$view, '.php', false, true);
+                $viewsFiles = JFolder::files($JPATH_COMPONENT . '/views/' . $view, '.php', false, true);
                 $files = array_merge($files, $viewsFiles);
             }
         }
@@ -201,12 +193,13 @@ class PlgSystemMVCOverride extends JPlugin
         foreach ($files as $file)
         {
             $file = JPath::clean($file);
-            $file = substr($file, strlen(JPATH_BASE.'/components/'));
+            $file = substr($file, strlen(JPATH_BASE . '/components/'));
             $return[] = $file;
         }
 
         return $return;
     }
+
     /**
      * findPath function.
      * Replacement for JPATH::find, if the target path is a symlink JPATH::find fails
