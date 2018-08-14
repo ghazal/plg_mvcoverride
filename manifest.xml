@@ -3,7 +3,7 @@
     <update>
         <name>Plugin MVCOverride</name>
         <description>This is plg_mvcoverride version 3.3</description>
-        <element>mod_b3_carousel</element>
+        <element>plg_mvcoverride</element>
         <type>plugin</type>
         <folder>system</folder>
         <version>3.3</version>
@@ -18,7 +18,7 @@
     <update>
         <name>Plugin MVCOverride</name>
         <description>This is plg_mvcoverride version 3.3.1</description>
-        <element>mod_b3_carousel</element>
+        <element>plg_mvcoverride</element>
         <type>plugin</type>
         <folder>system</folder>
         <version>3.3.1</version>
