@@ -9,7 +9,7 @@ defined('_JEXEC') or die;
  * @subpackage  Module
  * @since       11.1
  */
-abstract class JModuleHelper extends JModuleHelperLibraryDefault
+abstract class MVCoverrideModuleHelper extends JModuleHelperLibraryDefault
 {
 	/**
 	 * An array to hold included paths
